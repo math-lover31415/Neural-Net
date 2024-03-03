@@ -8,6 +8,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import r2_score
 from sklearnex import patch_sklearn
+import pickle
 
 patch_sklearn()
 
@@ -16,19 +17,27 @@ table = pd.read_csv('train.csv')
 selected_columns = ['product', 'store', 'state','num_sold']
 table = table[selected_columns]
 
-table['product'] = table['product'].map({'Mec Mug': 0, 'Mec Hat': 1, 'Mec Sticker': 2})
-table['store'] = table['store'].map({'ExcelMart': 0, 'MecStore': 1})
-table['state'] = table['state'].map({'Kerala': 0, 'Mumbai': 1, 'Delhi': 2})
-table = table.dropna()
+table['product'] = table['product'].dropna()
+table['store'] = table['store'].dropna()
+table['state'] = table['state'].dropna()
+
+table['store'] = table['store'].astype('category')
+table['state'] = table['state'].astype('category')
+table['product'] = table['product'].astype('category')
+
+table = pd.get_dummies(table, drop_first=True)
+
+# Replace True and False with 1 and 0
+table = table.replace({True: 1, False: 0})
+
+# Replace na in num_sold with mean
+table['num_sold'] = table['num_sold'].fillna(table['num_sold'].mean())
+
+print(table.head())
 
 X = table.drop('num_sold', axis=1)
 y = table['num_sold']
 
-# model = RandomForestRegressor(n_estimators=100, random_state=42)
-# model.fit(X, y)
-
-# pickle.dump(model, open('model.pkl', 'wb'))
-# exit()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
