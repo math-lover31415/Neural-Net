@@ -12,9 +12,20 @@ model = pickle.load(open('model.pkl', 'rb'))
 selected_columns = ['product', 'store', 'state']
 table = test[selected_columns]
 
-table.loc[:, 'product'] = table['product'].map({'Mec Mug': 0, 'Mec Hat': 1, 'Mec Sticker': 2})
-table.loc[:, 'store'] = table['store'].map({'ExcelMart': 0, 'MecStore': 1})
-table.loc[:, 'state'] = table['state'].map({'Kerala': 0, 'Mumbai': 1, 'Delhi': 2})
+table['product'] = table['product'].dropna()
+table['store'] = table['store'].dropna()
+table['state'] = table['state'].dropna()
+
+table['store'] = table['store'].astype('category')
+table['state'] = table['state'].astype('category')
+table['product'] = table['product'].astype('category')
+
+table = pd.get_dummies(table, drop_first=True)
+
+# Replace True and False with 1 and 0
+table = table.replace({True: 1, False: 0})
+
+print(table.head())
 
 y_pred = model.predict(table).astype(int)  # Convert predictions to integers
 
